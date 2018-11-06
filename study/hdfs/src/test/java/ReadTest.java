@@ -1,8 +1,5 @@
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.IOUtils;
 import org.junit.Test;
 
@@ -21,7 +18,7 @@ public class ReadTest {
 
     static {
         try {
-            fs = FileSystem.get(new URI("hdfs://192.168.134.128"),conf,"hadoop");
+            fs = FileSystem.get(new URI("hdfs://192.168.134.128"), conf, "hadoop");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -36,7 +33,7 @@ public class ReadTest {
     //流文件读一次之后再继续读的话什么都读不到
     public void seek() throws Exception {
         FSDataInputStream in = fs.open(new Path("/app/readme.md"));
-        IOUtils.copyBytes(in,System.out,1024,false);
+        IOUtils.copyBytes(in, System.out, 1024, false);
         in.seek(0);
 //        IOUtils.copyBytes(in,System.out,1024,false);I
         IOUtils.closeStream(in);
@@ -62,8 +59,8 @@ public class ReadTest {
         InputStream in = new FileInputStream(new File(source));
         byte[] b = new byte[1024];
         int len;
-        while((len=in.read(b)) != -1) {
-            fsDataOutputStream.write(b,0,len);
+        while ((len = in.read(b)) != -1) {
+            fsDataOutputStream.write(b, 0, len);
         }
         in.close();
         fsDataOutputStream.close();
@@ -73,6 +70,22 @@ public class ReadTest {
     public void mkdirs() throws IOException {
         boolean mkdirs = fs.mkdirs(new Path("/app/mkdir/123/"));
         System.out.println(mkdirs);
+    }
+
+    @Test
+    public void delete() throws IOException {
+        boolean b = fs.delete(new Path("/app/mkdir"), true);
+        System.out.println(b);
+    }
+
+    @Test
+    public void recursion() throws IOException {
+        RemoteIterator<LocatedFileStatus> locatedFileStatusRemoteIterator = fs.listFiles(new Path("/"), true);
+        while(locatedFileStatusRemoteIterator.hasNext()){
+            LocatedFileStatus locatedFileStatus = locatedFileStatusRemoteIterator.next();
+            Path path = locatedFileStatus.getPath();
+            System.out.println(path);
+        }
     }
 
 }
